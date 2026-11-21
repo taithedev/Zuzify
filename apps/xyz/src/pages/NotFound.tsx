@@ -1,2 +1,0 @@
-import { ArrowLeft } from "lucide-react";
-export function NotFound(){return <div className="container not-found"><div className="eyebrow"><span className="eyebrow-dot"/> ERROR / 404</div><div className="not-found-number">404<span>.</span></div><h1>Not in this universe.</h1><p>The page you're looking for hasn't been created, or has moved elsewhere.</p><a className="button-link button-primary" href="/"><ArrowLeft size={17}/> Back to Zuzify</a></div>;}
