@@ -1,0 +1,1 @@
+export function NotFound(){return <div className="container lol-page lol-404"><div className="eyebrow"><span className="eyebrow-dot"/> PAGE NOT FOUND</div><h1>404<span>.</span></h1><p>Even the weird side has its limits.</p><a className="button-link button-primary" href="/">BACK TO LOL →</a></div>;}

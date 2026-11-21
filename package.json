@@ -1,0 +1,23 @@
+{
+  "name": "zuzify",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:xyz": "npm run dev -w @zuzify/xyz",
+    "dev:lol": "npm run dev -w @zuzify/lol",
+    "build": "npm run build -w @zuzify/xyz && npm run build -w @zuzify/lol",
+    "build:xyz": "npm run build -w @zuzify/xyz",
+    "build:lol": "npm run build -w @zuzify/lol",
+    "typecheck": "npm run typecheck -w @zuzify/xyz && npm run typecheck -w @zuzify/lol",
+    "validate": "node scripts/validate-catalog.mjs",
+    "check": "npm run validate && npm run typecheck && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

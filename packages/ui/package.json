@@ -1,0 +1,18 @@
+{
+  "name": "@zuzify/ui",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles/global.css"
+  },
+  "dependencies": {
+    "@zuzify/catalog": "file:../catalog",
+    "lucide-react": "^0.468.0"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

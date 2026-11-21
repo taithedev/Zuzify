@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://zuzify.lol/sitemap.xml
