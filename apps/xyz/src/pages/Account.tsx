@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, Copy, LogOut, RefreshCw, ShieldCheck } from "lucid
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { authClient } from "../auth/client";
 
+type Integration = { slug: string; name: string; neon_project_id: string | null; is_live: boolean };
 type Grant = { id: string; name: string; scopes: string; created?: string };
 function record(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -31,6 +32,8 @@ export function AccountPage() {
   const navigate = useNavigate();
   const { data: session, isPending, refetch } = authClient.useSession();
   const [grants, setGrants] = useState<Grant[]>([]);
+  const [integrations, setIntegrations] = useState<Integration[]>([]);
+  const [integrationError, setIntegrationError] = useState("");
   const [loadingGrants, setLoadingGrants] = useState(false);
   const [grantError, setGrantError] = useState("");
   const [newName, setNewName] = useState("");
@@ -48,6 +51,16 @@ export function AccountPage() {
     } finally { setLoadingGrants(false); }
   }
   useEffect(() => { if (session) void loadConnections(); }, [session?.user.id]);
+  useEffect(() => {
+    if (!session) return;
+    const ctrl = new AbortController();
+    const api = (import.meta.env.VITE_NEON_DATA_API_URL || "https://ep-rough-recipe-bcjp6wq7.apirest.c-16.us-east-1.aws.neon.tech/neondb/rest/v1") .replace(/\/$/, "");
+    fetch(api + "/zuzify_integrations?select=slug,name,neon_project_id,is_live&order=name.asc", { signal: ctrl.signal, credentials: "omit" })
+      .then(async response => { if (!response.ok) throw new Error("Integration registry is unavailable"); return response.json() as Promise<Integration[]>; })
+      .then(rows => { if (!ctrl.signal.aborted) setIntegrations(Array.isArray(rows) ? rows : []); })
+      .catch(error => { if (!ctrl.signal.aborted) setIntegrationError(error instanceof Error ? error.message : "Integration registry is unavailable"); });
+    return () => ctrl.abort();
+  }, [session?.user.id]);
   useEffect(() => { if (session) setNewName(session.user.name); }, [session?.user.id]);
 
   if (isPending) return <div className="portal-loading" role="status">Loading your Zuzify account...</div>;
@@ -87,6 +100,15 @@ export function AccountPage() {
         <div className="account-footnote">Connections require each Zuzify product to integrate the official login flow. Existing app accounts are not automatically merged.</div>
       </section>
     </div>
+    <section className="account-card connections-card" aria-label="Neon application integration status">
+      <span className="eyebrow">03 / NEON DATABASE SYNC</span>
+      <h2>Application setup</h2>
+      <p className="account-muted">An assigned Neon project is not proof of a complete migration. Existing accounts remain separate until you explicitly link them through an official app.</p>
+      {integrationError ? <p className="portal-error">{integrationError}</p> : !integrations.length ? <p className="account-muted">No integration information available.</p> :
+        <div className="grant-list">{integrations.map(app=><div className="grant-item" key={app.slug}>
+          <span className="grant-icon">Z</span><div><strong>{app.name}</strong><small>{app.is_live ? "Production integration verified" : app.neon_project_id ? "Neon project assigned · cutover unverified" : "Neon migration pending"}</small></div>
+        </div>)}</div>}
+    </section>
     <div className="account-bottom"><div><span className="eyebrow">ZUZIFY ECOSYSTEM</span><h3>Explore the websites</h3></div><Link to="/" className="portal-quiet">Back to sites <ArrowUpRight size={16}/></Link></div>
   </section>;
 }
