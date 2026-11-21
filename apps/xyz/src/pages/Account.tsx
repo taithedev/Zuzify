@@ -54,7 +54,7 @@ export function AccountPage() {
   useEffect(() => {
     if (!session) return;
     const ctrl = new AbortController();
-    const api = (import.meta.env.VITE_NEON_DATA_API_URL || "https://ep-rough-recipe-bcjp6wq7.apirest.c-16.us-east-1.aws.neon.tech/neondb/rest/v1").replace(/\\/$/, "");
+    const api = (import.meta.env.VITE_NEON_DATA_API_URL || "https://ep-rough-recipe-bcjp6wq7.apirest.c-16.us-east-1.aws.neon.tech/neondb/rest/v1") .replace(/\/$/, "");
     fetch(api + "/zuzify_integrations?select=slug,name,neon_project_id,is_live&order=name.asc", { signal: ctrl.signal, credentials: "omit" })
       .then(async response => { if (!response.ok) throw new Error("Integration registry is unavailable"); return response.json() as Promise<Integration[]>; })
       .then(rows => { if (!ctrl.signal.aborted) setIntegrations(Array.isArray(rows) ? rows : []); })
