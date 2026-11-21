@@ -77,6 +77,7 @@ export function Websites() {
             </span>
             <div className="sites-entry-content">
               <h2>{site.name}</h2>
+              <span className="sites-entry-byline">By Zuzify</span>
               <p>{site.description}</p>
               <span className="sites-entry-link">
                 {site.domain}
