@@ -1,9 +1,95 @@
-import { ArrowUpRight, Globe, Github } from "lucide-react";
-import { products } from "@zuzify/catalog";
-const domains=[
- {name:"Zuzify",domain:"zuzify.xyz",description:"The official Zuzify universe and product directory.",type:"PRIMARY"},
- {name:"Zuzify LOL",domain:"zuzify.lol",description:"Experimental ideas, creative projects and interactive fun.",type:"EXPERIMENTAL"},
- {name:"ZuzuOS",domain:"zuzuos.lol",description:"The domain for ZuzuOS, a desktop operating-system project.",type:"OPERATING SYSTEM"},
- {name:"Zuzu",domain:"zuzu.lol",description:"A Zuzu brand domain. Public website availability may vary.",type:"OTHER DOMAIN"},
+import { ArrowUpRight } from "lucide-react";
+import "./websites.css";
+
+type Website = {
+  name: string;
+  domain: string;
+  description: string;
+};
+
+const websites: Website[] = [
+  {
+    name: "Zuzify",
+    domain: "zuzify.xyz",
+    description: "The home of Zuzify. Discover all our apps, products and creative projects.",
+  },
+  {
+    name: "Zuzify LOL",
+    domain: "zuzify.lol",
+    description: "Our creative playground for experiments, unexpected ideas and the fun stuff.",
+  },
+  {
+    name: "ZuzuOS",
+    domain: "zuzuos.lol",
+    description: "The home domain for ZuzuOS, our desktop operating system project.",
+  },
+  {
+    name: "Zuzu",
+    domain: "zuzu.lol",
+    description: "A domain for the Zuzu brand and its growing collection of projects.",
+  },
 ];
-export function Websites(){return <div className="container page-wrap"><div className="page-topline">CONNECTED DOMAINS <span>WEB / THE DIRECTORY</span></div><div className="page-heading"><div className="eyebrow"><span className="eyebrow-dot"/> EVERY CORNER OF ZUZIFY</div><h1>Our <em>websites.</em></h1><p>Every project has a place in the ecosystem. Explore registered Zuzify and Zuzu domains, and find the public repositories for products in development.</p></div><section className="directory-page"><div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-dot"/> 01 / DOMAIN COLLECTION</div><h2>Find your way around.</h2><p>These domains are registered to the Zuzify ecosystem. A registered domain does not necessarily mean its website is online.</p></div></div><div className="website-grid">{domains.map((site,i)=><a href={"https://"+site.domain} target="_blank" rel="noopener noreferrer" className="website-tile" key={site.domain}><div className="website-top"><span>0{i+1} / {site.type}</span><ArrowUpRight size={19}/></div><div className="website-icon"><Globe size={45} strokeWidth={1}/></div><h3>{site.name}</h3><p>{site.description}</p><span className="website-domain">{site.domain} <ArrowUpRight size={14}/></span></a>)}</div></section><section className="section" style={{paddingTop:80}}><div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-dot"/> 02 / SOURCE & RELEASES</div><h2>Project links.</h2><p>Public repositories and releases for Zuzu apps. Links are labeled as repositories, not live websites.</p></div></div><div className="repo-list">{products.filter(p=>p.repoUrl).map(p=><a href={p.repoUrl} target="_blank" rel="noopener noreferrer" key={p.slug}><span className="repo-symbol">{p.symbol}</span><span><strong>{p.name}</strong><small>{p.category} / {p.status}</small></span><span className="repo-go">GITHUB <Github size={15}/><ArrowUpRight size={15}/></span></a>)}</div></section></div>;}
+
+const stars = [
+  { left: "8%", top: "14%", size: "11px", delay: "0s" },
+  { left: "19%", top: "70%", size: "18px", delay: "1.1s" },
+  { left: "39%", top: "7%", size: "10px", delay: "2.2s" },
+  { left: "63%", top: "16%", size: "20px", delay: "1.7s" },
+  { left: "84%", top: "29%", size: "12px", delay: "0.6s" },
+  { left: "94%", top: "64%", size: "18px", delay: "2.6s" },
+  { left: "12%", top: "91%", size: "8px", delay: "2.9s" },
+  { left: "76%", top: "93%", size: "9px", delay: "1.8s" },
+];
+
+export function Websites() {
+  return (
+    <section className="sites-page container" aria-label="Zuzify websites">
+      <h1 className="sr-only">Zuzify websites</h1>
+      <div className="sites-sky" aria-hidden="true">
+        {stars.map((star, index) => (
+          <span
+            key={index}
+            className="sites-sky-star"
+            style={{
+              left: star.left,
+              top: star.top,
+              fontSize: star.size,
+              animationDelay: star.delay,
+            }}
+          >
+            ✦
+          </span>
+        ))}
+      </div>
+      <div className="sites-list">
+        {websites.map((site, index) => (
+          <a
+            className="sites-entry"
+            key={site.domain}
+            href={`https://${site.domain}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Visit ${site.name} at ${site.domain} (opens in a new tab)`}
+          >
+            <span className="sites-entry-stars" aria-hidden="true">
+              <span className="sites-entry-star-big">✦</span>
+              <span className="sites-entry-star-small">✧</span>
+            </span>
+            <div className="sites-entry-content">
+              <h2>{site.name}</h2>
+              <p>{site.description}</p>
+              <span className="sites-entry-link">
+                {site.domain}
+                <ArrowUpRight size={16} strokeWidth={1.6} />
+              </span>
+            </div>
+            <span className="sites-entry-corner-star" aria-hidden="true">✳</span>
+            <span className="sites-entry-number" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
