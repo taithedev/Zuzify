@@ -1,6 +1,6 @@
 # Zuzu / Zuzify → Neon migration
 
-Last inventoried: 2026-11-20 (EST). **Stage: in progress, NOT a production cutover.**
+> **CORRECTION (2026-11-20):** The canonical identity database is the existing Neon **Zuzify Accounts** project `rough-queen-59692102` (database `neondb`), which already contains a real account. The newer `young-truth-44623930` project was provisioned separately and has no user accounts; it must **not** replace the existing Zuzify Auth endpoint. The production `VITE_NEON_AUTH_URL` should remain `https://ep-rough-recipe-bcjp6wq7.neonauth.c-16.us-east-1.aws.neon.tech/neondb/auth`. We enabled the canonical project's Data API and created a 12-app integration registry plus protected profile/account-link tables. The links table accepts no browser-side writes. New apps need their own verified OAuth clients and backend migrations. Do not merge user accounts by email or switch production credentials without migration testing.\n\nLast inventoried: 2026-11-20 (EST). **Stage: in progress, NOT a production cutover.**
 
 ## Source of truth and existing deployments
 
