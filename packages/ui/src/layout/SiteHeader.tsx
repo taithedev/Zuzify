@@ -4,7 +4,7 @@ import { useEffects } from "../context/EffectsContext";
 type Props={kind:"xyz"|"lol";onSearch:()=>void};
 export function SiteHeader({kind,onSearch}:Props){
  const [menu,setMenu]=useState(false);const {snow,toggleSnow}=useEffects();
- const nav=kind==="xyz"?[["Home","/"],["Ecosystem","/apps"],["Websites","/websites"],["About","/about"],["Developers","/developers"]]:[["Home","/"],["Playground","/lab"],["Projects","/projects"],["About","/about"]];
+ const nav=kind==="xyz"?[["Home","/"],["Ecosystem","/apps"],["Websites","/websites"],["Network","/network"],["About","/about"],["Developers","/developers"]]:[["Home","/"],["Playground","/lab"],["Projects","/projects"],["About","/about"]];
  return <header className="header"><div className="container nav-wrap">
  <a href="/" className="brand" aria-label="Zuzify home"><span className="brand-icon">Z</span><span>ZUZIFY<span className="brand-period">.</span></span><span className="brand-site">{kind==="lol"?"LOL":"XYZ"}</span></a>
  <nav className={"nav-links "+(menu?"nav-open":"")} aria-label="Main navigation">{nav.map(([title,href])=><a key={title} href={href} className={location.pathname===href?"nav-active":""} onClick={()=>setMenu(false)}>{title}</a>)}<a className="mobile-visit" href={kind==="xyz"?"https://zuzify.lol":"https://zuzify.xyz"}>{kind==="xyz"?"Visit .lol":"Visit .xyz"} <ArrowUpRight size={15}/></a></nav>
