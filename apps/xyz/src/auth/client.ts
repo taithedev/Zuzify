@@ -1,12 +1,10 @@
 import { createAuthClient } from "@neondatabase/auth";
 import { BetterAuthReactAdapter } from "@neondatabase/auth/react/adapters";
 
-// Shared Zuzify identity is served from a dedicated Neon project.
-// Public Auth endpoint only; never expose a database URL or server key to browsers.
-// Before production deployment, migrate any existing user identities and update Vercel's
-// VITE_NEON_AUTH_URL; changing providers does not transfer credentials or sessions.
+// This existing Zuzify Accounts Neon Auth project already contains user accounts.
+// Keep it as the canonical identity provider; do not switch to an empty project.
 export const authClient = createAuthClient(
   import.meta.env.VITE_NEON_AUTH_URL ||
-    "https://ep-royal-dust-beuaeal0.neonauth.c-9.us-east-2.aws.neon.tech/zuzify/auth",
+    "https://ep-rough-recipe-bcjp6wq7.neonauth.c-16.us-east-1.aws.neon.tech/neondb/auth",
   { adapter: BetterAuthReactAdapter() }
 );
