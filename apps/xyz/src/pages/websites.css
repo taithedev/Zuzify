@@ -65,7 +65,15 @@
   font-weight: 600;
   letter-spacing: -.065em;
   line-height: 1.05;
-  margin: 0 0 16px;
+  margin: 0 0 5px;
+}
+.sites-entry-byline {
+  display: block;
+  margin-bottom: 17px;
+  color: #888892;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .025em;
 }
 .sites-entry p {
   font-size: 13px;
