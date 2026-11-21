@@ -1,60 +1,45 @@
-# Zuzu / Zuzify → Neon migration
+# Zuzify ecosystem Neon migration
 
-> **CORRECTION (2026-11-20):** The canonical identity database is the existing Neon **Zuzify Accounts** project `rough-queen-59692102` (database `neondb`), which already contains a real account. The newer `young-truth-44623930` project was provisioned separately and has no user accounts; it must **not** replace the existing Zuzify Auth endpoint. The production `VITE_NEON_AUTH_URL` should remain `https://ep-rough-recipe-bcjp6wq7.neonauth.c-16.us-east-1.aws.neon.tech/neondb/auth`. We enabled the canonical project's Data API and created a 12-app integration registry plus protected profile/account-link tables. The links table accepts no browser-side writes. New apps need their own verified OAuth clients and backend migrations. Do not merge user accounts by email or switch production credentials without migration testing.\n\nLast inventoried: 2026-11-20 (EST). **Stage: in progress, NOT a production cutover.**
+Status: **staged / not a completed production migration** (2026-11-20, America/New_York).
 
-## Source of truth and existing deployments
+## Identity: existing accounts must survive
 
-- Legacy Supabase project: `wfqudstuncdldsvxqveu` (still active). **DO NOT delete** it or its auth/storage/users.
-- Neon Zuzify Identity: `young-truth-44623930`, database `zuzify`, default branch `main`. Neon Auth, Data API and OAuth provider are enabled. Trusted origins: `zuzify.xyz`, `www.zuzify.xyz`, `zuzify.lol`.
-- Existing Neon projects: Kova (`icy-block-30907888`), ZuzuCord (`wild-voice-54090891`), ZuzuCord PG18 (`rapid-paper-52693216`), ZuzuLoader (`floral-wind-62267468`).
-- Important: Existing ZuzuCord/Kova Neon Auth projects are **not automatically the same identity database** as Zuzify Identity. Each application must explicitly implement Zuzify OAuth 2.1 linking before its accounts can be connected.
+**Canonical central sign-in:** Neon **Zuzify Accounts** `rough-queen-59692102` (database `neondb`, branch `main`). Its Auth service already contains **1 existing user** and has the OAuth 2.1 server enabled. Its existing public Auth URL is `https://ep-rough-recipe-bcjp6wq7.neonauth.c-16.us-east-1.aws.neon.tech/neondb/auth`.
 
-## Repository audit / migration status
+We enabled Neon Data API for this same canonical project and created:
+- `zuzify_profiles`: per-user profile with ownership-based RLS.
+- `zuzify_integrations`: publicly readable directory of **12** Zuzu/Zuzify apps, assigned Neon project IDs where known. All `is_live` flags remain false until deployments are verified.
+- `zuzify_account_links`: user-owned, authenticated-readable record for verified cross-app links. **No browser-side INSERT/UPDATE/DELETE permission**; future app backends must verify both account ownership and OAuth tokens before adding a link.
 
-| Project | Found | Next step |
-| --- | --- | --- |
-| Zuzify (.xyz) | Existing Neon Auth React account center and OAuth pages; existing endpoint pointed to a different Neon project | This branch stages a dedicated Zuzify Identity endpoint. Verify compatibility, old identity migration, and Vercel env before merging. |
-| Zuzify (.lol) | Static Vite community/experimental site | No application database migration yet identified; use central sign-in only where needed. |
-| ZuzuCord | Neon migrations, APIs, *and* old Supabase folder | Follow `neon/MIGRATION-CUTOVER.md`; verify active client routes, real account records, authentication, realtime and attachments, then release. |
-| ZuzuCord Developers | Separate developer UI/CLI | Make it use production ZuzuCord/Neon roles and verified tokens after the main ZuzuCord cutover. |
-| Kova | Neon project exists | Verify live clients and APIs; optionally add explicit Continue with Zuzify consent. |
-| ZuzuLoader | Neon project exists | Verify current clients use it; link accounts via OAuth rather than copying passwords. |
-| ZuzuMusic | Repository's database schema targets Neon `DATABASE_URL` | Verify production deployment and create/apply its schema in an approved Neon project. |
-| ZuzuAI | Supabase schema and `src/lib/supabase.ts` | Port auth, chat/credits persistence, account roles, file handling and every query; migrate records. |
-| ZuzifyDiscordBot | `@supabase/supabase-js` in `src/db.ts`, Supabase env and schema | Implement Neon server-side database access; preserve account-link flows, bot state and role checks, then deploy bot secrets. |
-| PrezzStore | Supabase client/auth/SSR, database schema and payment flows | Migrate auth and all store/order/payment tables before changing production endpoints; verify payment webhook idempotency. |
-| Rhythm.play | Supabase schema and client code | Port score/profile persistence and session checks to Neon, then migrate leaderboards. |
-| Vertex-X | Supabase schema | Port profile, roles, wallet, credits and script data with trusted server-side authorization. |
-| ZuzuOS / legacy zuzu.os | Legacy Supabase tables for ZuzuOS exist | Review current app entrypoints; preserve profiles, PIN hashes, roles and licenses if they are still used. |
-| Winglass | Supabase tables exist | Replace preferences/catalog access only after inspecting the active app. |
-| Fastproxy | Supabase tables exist | Migrate profile/settings/history/subscription data if the app remains active. |
-| Other Zuzify repos | Not all apps need a database | Only make a migration when a live Supabase dependency is verified. |
+The newer project `young-truth-44623930`, previously called **Zuzify Identity**, was created separately but contains **zero Neon Auth users**. It has been renamed **Zuzify App Data** and should **not** replace the existing central sign-in. Do not change the canonical Vercel `VITE_NEON_AUTH_URL` to the newer empty project's URL.
 
-## Verified data warning
+No OAuth clients were registered yet for the independent apps; a registered client requires an actual owned HTTPS redirect URI and a verified application callback implementation. No existing accounts were merged.
 
-Supabase `list_tables` showed *estimated* row counts of zero, which are not reliable. Real `COUNT(*)` checks on 2026-11-20 showed nonzero records in `zuzucord_accounts` (5), `zuzuai_accounts` (8), `prezzstore_stores` (5) and `vertexx_profiles` (1). Treat all legacy data as real and preserve it.
+## App data: work actually prepared
 
-## Cutover steps for EACH app
+- **Rhythm.play:** Staged a separate draft PR to replace the public Supabase leaderboard/catalog with Neon Data API. The new `Zuzify App Data` `zuzify` database has `rhythm_scores` (1 copied historical record) and `rhythm_skins` (6 copied catalog records), with verified source/destination counts and anonymous read/guest-score RLS. The actual deployed Rhythm origin must be added to the Neon Data API CORS list before cutover. Need a final delta copy before launch.
+- **ZuzuMusic:** Created separate `zuzumusic` database on the `Zuzify App Data` Neon project and applied the repository's `database/schema.sql` (`zm_users`, `zm_tracks`, indexes). This is ready for a future server-side `DATABASE_URL` connection; there is no verified Vercel deployment, no live secret configured, and no shared OAuth account integration yet.
+- **ZuzuCord / Kova / ZuzuLoader:** Existing individual Neon projects were detected. Existing project != verified production cutover. Follow app-specific runbooks.
+- **ZuzuAI, PrezzStore, Zuzify Discord Bot, Vertex-X, ZuzuOS, Winglass, FastProxy and other legacy apps:** Supabase dependencies remain. Data and files must be migrated with verified account mapping and app-specific auth/storage/realtime replacements.
 
-1. Identify the deployed repo/branch, API service, auth provider, secrets and usage of Supabase Auth, Realtime, Storage, Edge Functions, RLS, triggers and SQL functions.
-2. Create a complete, verified backup of the legacy database and storage; inventory record counts including tables without stable statistics.
-3. Create the Neon schema and server-side APIs on an isolated environment, using least-privilege roles, valid ownership checks and no browser-exposed DB credentials. Do not copy Supabase `auth.uid()` policies without adapting the JWT verification and RLS context.
-4. Copy records preserving stable business identifiers; explicitly map Supabase Auth users to Neon Auth identities through a validated account claim/migration flow. Never treat a matching email or client-supplied user ID as proof of ownership.
-5. Migrate associated files (Supabase Storage is not the same as PostgreSQL) and implement replacement websocket, webhook, scheduled job and function facilities where needed.
-6. Verify login/signup/logout/reset, permissions, roles, moderation, purchases, linked accounts, old data integrity and deployment logs in staging. Reconcile row counts and key foreign relations.
-7. Update server-side secrets and Vercel/desktop/CI environment variables, then deploy client changes and verify the actual production traffic. Use a staged/feature-flagged cutover with rollback. Do not force a database switch ahead of credentials/data migration.
-8. Retain Supabase read-only as necessary for rollback until a completed reconciliation. No deletion or transfer of user data is authorized by this checklist.
+## Supabase is still active (no deletion)
 
-## Zuzify Identity integration contract
+Source: `wfqudstuncdldsvxqveu`. Real record counts were found in `zuzucord_accounts` (5), `zuzuai_accounts` (8), `zuzuai_chats` (38), `zuzuai_messages` (103), `prezzstore_stores` (5), `vertexx_profiles` (1), `rhythm_scores` (1) and `rhythm_skins` (6). PostgreSQL estimated row counts of zero from a metadata endpoint are *not* evidence of an empty table.
 
-- Central account: Neon Auth in the Zuzify Identity project.
-- App database: may be a separate Neon project. Central identity and app data must not rely on a shared unverified username.
-- OAuth provider: `https://zuzify.xyz/oauth/login` and `https://zuzify.xyz/oauth/consent`; an app must have a registered OAuth client with an exact redirect URI and PKCE where applicable.
-- App's own backend validates issuer, audience, signature, expiry, client, and scopes. Do not ask users to enter Zuzify passwords directly into another app.
-- Database registry: `zuzify_app_catalog` lists apps with `supports_identity_linking=false` until OAuth implementation is live; `zuzify_app_connections` is read-only to browser users, so no self-asserted links.
-- Client auth endpoint (public): `https://ep-royal-dust-beuaeal0.neonauth.c-9.us-east-2.aws.neon.tech/zuzify/auth`.
-- Before merging this PR, confirm whether accounts exist under the older `ep-rough-recipe-bcjp6wq7` endpoint and migrate them or explicitly require new enrollment. Merely changing `VITE_NEON_AUTH_URL` would switch identity providers and invalidate old sessions.
+## Required safe cutover process per application
 
-## Acceptance gate
+1. Identify the **actual running** API/backend and how it uses Supabase Auth, Storage, Edge Functions, RLS, Realtime, and webhooks.
+2. Export and verify a full Supabase backup (including files and all foreign keys), with source/destination row counts.
+3. Apply Neon tables/indexes/policies to an isolated database, set least-privilege roles and a trusted server-side database URL. No `DATABASE_URL` in browser code, desktop binaries, or GitHub.
+4. Copy data without changing existing user identifiers unexpectedly. Existing Supabase Auth accounts cannot be made into Neon accounts merely by switching URLs; identity migrations must prove user ownership and preserve access.
+5. Implement the Zuzify OAuth authorization-code flow with PKCE where appropriate. Register a **distinct client and exact redirect URI** for each app, validate issuer/JWKS/audience/scope/server-side, and explicitly link a local app account after verifying both identities.
+6. Rebuild equivalent storage/signing, file access, auth/RLS, realtime and subscription/payment workflows when needed. Never expose cross-account data or infer app permissions from a raw client-supplied ID.
+7. Test sign-up, sign-in, sessions, owner roles, read/write isolation, old messages, score and catalog reads, uploads, moderation, realtime, billing webhooks, error and rollback flows.
+8. Update deployment secrets and release in stages with a verified final delta copy and a read-only fallback. **Do not delete Supabase yet.**
 
-**No app is considered migrated merely because a Neon project exists or because a repo contains a `neon/` directory.** Mark complete only after an application-level build, credential tests, record parity, production routing verification, and a rollback plan. This PR intentionally does not change Supabase services, customer records, payment wiring, production env vars or live deployments.
+## Draft branches
+
+- Zuzify identity registry/status dashboard: `taithedev/Zuzify` PR #1.
+- Rhythm.play leaderboard/catalog migration: `taithedev/Rhythm.play` PR #1.
+
+Neither draft PR should be merged until the corresponding runtime, domain settings, and deployment tests pass.
