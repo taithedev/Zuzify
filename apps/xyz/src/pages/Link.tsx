@@ -28,9 +28,11 @@ export function LinkPage() {
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
-    setCode(requestedCode);
-    setComplete(false);
-    setError("");
+    if (requestedCode) {
+      setCode(requestedCode);
+      setComplete(false);
+      setError("");
+    }
   }, [requestedCode]);
 
   async function link(event: FormEvent<HTMLFormElement>) {
