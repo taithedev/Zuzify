@@ -3,8 +3,13 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from "react-route
 import { authClient } from "../auth/client";
 
 function safeNext(value: string | null): string {
-  // Only return to our own OAuth authorization page; never follow arbitrary redirect URLs.
-  return value?.startsWith("/oauth/login?") ? value : "/account";
+  // Return only to approved internal destinations, never an arbitrary redirect URL.
+  if (!value || value.length > 300 || !value.startsWith("/") || value.startsWith("//")) return "/account";
+  const url = new URL(value, "https://zuzify.xyz");
+  if (url.origin !== "https://zuzify.xyz") return "/account";
+  if (url.pathname === "/oauth/login" && url.search.startsWith("?")) return url.pathname + url.search;
+  if (url.pathname === "/link") return url.pathname + url.search;
+  return "/account";
 }
 function readError(error: unknown) {
   return error instanceof Error ? error.message : "The request could not be completed. Try again.";
