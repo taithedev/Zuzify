@@ -4,6 +4,7 @@ import { Websites } from "./pages/Websites";
 import { AuthPage } from "./pages/Auth";
 import { AccountPage } from "./pages/Account";
 import { OAuthLogin, OAuthConsent } from "./pages/OAuth";
+import { LinkPage } from "./pages/Link";
 
 function Header() {
   const { data: session, isPending } = authClient.useSession();
