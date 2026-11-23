@@ -4,6 +4,7 @@ import { Websites } from "./pages/Websites";
 import { AuthPage } from "./pages/Auth";
 import { AccountPage } from "./pages/Account";
 import { OAuthLogin, OAuthConsent } from "./pages/OAuth";
+import { LinkPage } from "./pages/Link";
 
 function Header() {
   const { data: session, isPending } = authClient.useSession();
@@ -26,6 +27,7 @@ export function App() {
           <Route path="/websites" element={<Navigate to="/" replace />} />
           <Route path="/auth/:action" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/link" element={<LinkPage />} />
           <Route path="/oauth/login" element={<OAuthLogin />} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="*" element={<Navigate to="/" replace />} />

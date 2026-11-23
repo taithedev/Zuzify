@@ -15,6 +15,13 @@
       ]
     },
     {
+      "source": "/link",
+      "headers": [
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
       "source": "/oauth/(.*)",
       "headers": [
         { "key": "Content-Security-Policy", "value": "frame-ancestors 'none'" }
