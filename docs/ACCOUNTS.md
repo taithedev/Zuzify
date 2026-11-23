@@ -34,3 +34,13 @@ Source: `apps/xyz`. Database: Neon project **Zuzify Accounts**, distinct from Zu
 ## Remaining rollout work
 
 The OAuth provider is configured, but independent apps are **not connected automatically**. Register clients and add the login flow inside ZuzuCord, Kova, ZuzuMusic, Zuzify Hub and games one at a time. Add per-app data APIs to show activity/statistics. Run end-to-end sign up, password reset, consent, denial, and client callback tests against a preview branch before public launch.
+
+## Discord pairing: Bot-Hosting + Zuzify ID
+
+- Zuzify.xyz serves `/link` and `/link?code=<one-time-code>&service=zuzify`; signed-in users can also type the code from the bot at `/link` or from Account → Link Discord.
+- `apps/xyz/api/link/complete.js` is a same-origin, server-only Vercel Edge Function. It sends the signed Neon Auth JWT and one-time code to the bot's existing `POST /api/v1/link/complete`. The bot verifies the JWT and uses its private Neon schema to consume the challenge. No Discord bot credentials or database URL appear in browser code.
+- Add `BOT_LINK_API_URL` to **the Zuzify.xyz Vercel project's server environment**. The value must be the bot's *live HTTPS origin*, with no path. Do not use the currently unassigned Bot-Hosting hostname until `/health` returns a JSON success.
+- On Bot-Hosting, go to the bot deployment → Domains and activate/attach its assigned subdomain. Verify the HTTP server listens on `0.0.0.0` and `process.env.PORT` (or its configured `BOT_API_PORT`). Confirm `https://<bot-host>/health` returns `ok:true`, not the platform 404 page.
+- Set bot `BOT_PUBLIC_URL=https://zuzify.xyz` so future `/linkaccount` links land on the account website. Do this in the bot host's private env settings, not through GitHub; the other bot-maintenance chat should coordinate its rollout. Keep the bot's `/api/v1/link/complete` endpoint available at the configured `BOT_LINK_API_URL`.
+- The existing bot implementation creates long 64-character one-time links. Short, user-readable pairing codes require a *separate compatible bot change* (the site form accepts them, but the bot must generate, persist, expire, rate-limit, and validate them). Do not change the bot's main branch from the website workstream.
+- Do not post pairing codes publicly or capture them in telemetry. Regenerate challenges when expired. The site can only show success after the bot verifies and consumes the code.
