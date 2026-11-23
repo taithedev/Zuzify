@@ -27,6 +27,7 @@ export function App() {
           <Route path="/websites" element={<Navigate to="/" replace />} />
           <Route path="/auth/:action" element={<AuthPage />} />
           <Route path="/account" element={<AccountPage />} />
+          <Route path="/link" element={<LinkPage />} />
           <Route path="/oauth/login" element={<OAuthLogin />} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="*" element={<Navigate to="/" replace />} />
