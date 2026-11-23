@@ -83,6 +83,7 @@ export function AccountPage() {
       <section className="account-card connections-card">
         <div className="card-title"><div><span className="eyebrow">02 / AUTHORIZED APPS</span><h2>Connections</h2></div><button className="refresh-action" disabled={loadingGrants} onClick={loadConnections} aria-label="Refresh connections"><RefreshCw size={17}/></button></div>
         <p className="account-muted">Apps you approve using “Continue with Zuzify” will appear here.</p>
+        <p><Link to="/link" className="portal-quiet">Link Discord with a pairing code</Link></p>
         {loadingGrants ? <p className="account-muted">Checking your authorizations...</p> : grantError ? <p className="portal-error">{grantError}</p> : grants.length ? <div className="grant-list">{grants.map((g,i)=><div className="grant-item" key={g.id+"-"+i}><span className="grant-icon">Z</span><div><strong>{g.name}</strong><small>Permissions: {g.scopes}</small></div><Check size={16}/></div>)}</div> : <div className="empty-connections"><ShieldCheck size={30}/><h3>No connected apps yet</h3><p>No app has been authorized with this ID. Your data stays private until you choose to connect an app.</p></div>}
         <div className="account-footnote">Connections require each Zuzify product to integrate the official login flow. Existing app accounts are not automatically merged.</div>
       </section>
