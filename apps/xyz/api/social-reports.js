@@ -1,0 +1,4 @@
+import {db,user,body,fail,send,handle} from "./_lib/communications.js";
+export default async function handler(req,res){try{if(!["GET","POST"].includes(req.method))throw fail(405,"Method not allowed.");const sql=db(),u=await user(req,sql),[owner]=await sql`SELECT 1 FROM zuzify_comms.hub_owners WHERE user_id=${u.id}`;if(!owner||!u.verified)throw fail(403,"Verified owner required.");
+if(req.method==="POST"){const b=body(req);if(typeof b.id!=="string"||!/^[0-9a-f-]{36}$/i.test(b.id))throw fail(400,"Invalid report.");await sql`UPDATE zuzify_comms.social_reports SET status='reviewed' WHERE id=${b.id}::uuid`;}
+return send(res,200,{reports:await sql`SELECT id,subject_user,excerpt,reason,status,created_at FROM zuzify_comms.social_reports WHERE status='open' ORDER BY created_at DESC LIMIT 50`});}catch(e){return handle(res,e);}}

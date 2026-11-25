@@ -8,7 +8,7 @@ function safeNext(value: string | null): string {
   const url = new URL(value, "https://zuzify.xyz");
   if (url.origin !== "https://zuzify.xyz") return "/account";
   if (url.pathname === "/oauth/login" && url.search.startsWith("?")) return url.pathname + url.search;
-  if (["/owner","/support","/notifications"].includes(url.pathname)) return url.pathname;
+  if (["/owner","/support","/notifications","/social"].includes(url.pathname)) return url.pathname;
   if (url.pathname === "/link") return url.pathname + url.search;
   return "/account";
 }

@@ -1,0 +1,11 @@
+BEGIN;
+CREATE TABLE IF NOT EXISTS zuzify_comms.social_profiles (user_id text PRIMARY KEY,friend_code uuid NOT NULL UNIQUE DEFAULT gen_random_uuid(),avatar text NOT NULL DEFAULT 'mono',banner text NOT NULL DEFAULT 'night',avatar_image text,banner_image text,pending_avatar text,pending_banner text,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS zuzify_comms.social_pairs (low_id text NOT NULL,high_id text NOT NULL,requested_by text NOT NULL,state text NOT NULL CHECK(state IN ('pending','accepted','blocked')),blocked_by text,created_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(low_id,high_id),CHECK(low_id<high_id),CHECK(requested_by IN (low_id,high_id)),CHECK(blocked_by IS NULL OR blocked_by IN (low_id,high_id)));
+CREATE TABLE IF NOT EXISTS zuzify_comms.social_messages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(),sender text NOT NULL,recipient text NOT NULL,body text NOT NULL CHECK(length(body) BETWEEN 1 AND 1500),created_at timestamptz NOT NULL DEFAULT now(),CHECK(sender<>recipient));
+CREATE INDEX IF NOT EXISTS social_messages_pair ON zuzify_comms.social_messages(LEAST(sender,recipient),GREATEST(sender,recipient),created_at DESC);
+CREATE TABLE IF NOT EXISTS zuzify_comms.social_reports (id uuid PRIMARY KEY DEFAULT gen_random_uuid(),reporter text NOT NULL,subject_user text NOT NULL,message_id uuid NOT NULL,excerpt text NOT NULL,reason text NOT NULL,status text NOT NULL DEFAULT 'open' CHECK(status IN ('open','reviewed')),created_at timestamptz NOT NULL DEFAULT now(),UNIQUE(reporter,message_id));
+CREATE TABLE IF NOT EXISTS zuzify_comms.social_attempts (user_id text NOT NULL,kind text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS social_attempts_user ON zuzify_comms.social_attempts(user_id,kind,created_at DESC);
+REVOKE ALL ON zuzify_comms.social_profiles,zuzify_comms.social_pairs,zuzify_comms.social_messages,zuzify_comms.social_reports,zuzify_comms.social_attempts FROM PUBLIC;
+GRANT SELECT,INSERT,UPDATE,DELETE ON zuzify_comms.social_profiles,zuzify_comms.social_pairs,zuzify_comms.social_messages,zuzify_comms.social_reports,zuzify_comms.social_attempts TO zuzify_comms_runtime;
+COMMIT;

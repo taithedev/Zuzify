@@ -7,6 +7,7 @@ import { OAuthLogin, OAuthConsent } from "./pages/OAuth";
 import { LinkPage } from "./pages/Link";
 import { Center } from "./pages/Center";
 import { Owner, OwnerLink } from "./pages/Owner";
+import { Social } from "./pages/Social";
 
 function Header() {
   const { data: session, isPending } = authClient.useSession();
@@ -14,6 +15,7 @@ function Header() {
     <Link to="/" className="portal-brand" aria-label="Zuzify home">Zuzify.xyz</Link>
     <nav className="portal-nav" aria-label="Main navigation">
       <Link to="/">Explore</Link>
+      <Link to="/social">Friends</Link>
       <Link to="/support">Support</Link>
       <Link to="/notifications">Notifications</Link>
       {session && <OwnerLink userId={session.user.id}/> }
@@ -34,6 +36,7 @@ export function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/support" element={<Center mode="support" />} />
           <Route path="/notifications" element={<Center mode="notifications" />} />
+          <Route path="/social" element={<Social/>} />
           <Route path="/owner" element={<Owner/>} />
           <Route path="/link" element={<LinkPage />} />
           <Route path="/oauth/login" element={<OAuthLogin />} />

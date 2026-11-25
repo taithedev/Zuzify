@@ -90,7 +90,7 @@ export function AccountPage() {
         <div className="account-footnote">Connections require each Zuzify product to integrate the official login flow. Existing app accounts are not automatically merged.</div>
       </section>
     </div>
-    <div className="center-shortcuts"><Link className="portal-quiet" to="/support">Support tickets</Link><Link className="portal-quiet" to="/notifications">Notifications & email preferences</Link></div>
+    <div className="center-shortcuts"><Link className="portal-quiet" to="/social">Profile, friends & messages</Link><Link className="portal-quiet" to="/support">Support tickets</Link><Link className="portal-quiet" to="/notifications">Notifications & email preferences</Link></div>
     <div className="account-bottom"><div><span className="eyebrow">ZUZIFY ECOSYSTEM</span><h3>Explore the websites</h3></div><Link to="/" className="portal-quiet">Back to sites <ArrowUpRight size={16}/></Link></div>
   </section>;
 }

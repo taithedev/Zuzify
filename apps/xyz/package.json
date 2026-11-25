@@ -18,7 +18,8 @@
     "react-router-dom": "^7.0.0",
     "@neondatabase/auth": "0.7.0-beta",
     "jose": "^6.1.0",
-    "@neondatabase/serverless": "^1.0.2"
+    "@neondatabase/serverless": "^1.0.2",
+    "sharp": "^0.34.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
