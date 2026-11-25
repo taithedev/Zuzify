@@ -13,6 +13,19 @@ function pairingCode(input){
   const clean=typeof input==="string"?input.trim().replace(/[\s-]/g,""):"";
   return clean.length===16?clean.toUpperCase():clean;
 }
+async function listAccounts(token){
+ let user;try{user=(await verifyIdentity(token)).sub;}catch(error){logVerificationFailure(error);return {status:401,error:"Sign in again."};}
+ if(!process.env.ZUZIFY_PAIRING_ACCOUNTS_DATABASE_URL)return {status:503,error:"Discord connections are not configured."};
+ accountsPool ||= new pg.Pool({connectionString:process.env.ZUZIFY_PAIRING_ACCOUNTS_DATABASE_URL,max:2,connectionTimeoutMillis:8000,idleTimeoutMillis:10000,statement_timeout:8000});
+ const result=await accountsPool.query("SELECT * FROM public.list_web_discord_pairings($1::uuid)",[user]);
+ const accounts=await Promise.all(result.rows.map(async row=>{
+  const id=String(row.discord_id);let createdAt=null,username=null,displayName=null,avatar=null;
+  try{createdAt=new Date(Number((BigInt(id)>>22n)+1420070400000n)).toISOString();}catch{}
+  const botToken=process.env.DISCORD_BOT_TOKEN;
+  if(botToken&&/^\d{15,25}$/.test(id)){try{const r=await fetch("https://discord.com/api/v10/users/"+id,{headers:{authorization:"Bot "+botToken},signal:AbortSignal.timeout(2500),redirect:"error",cache:"no-store"});if(r.ok){const d=await r.json();if(d.id===id){username=typeof d.username==="string"?d.username:null;displayName=typeof d.global_name==="string"?d.global_name:null;if(typeof d.avatar==="string"&&/^(a_)?[a-f0-9]+$/.test(d.avatar))avatar="https://cdn.discordapp.com/avatars/"+id+"/"+d.avatar+(d.avatar.startsWith("a_")?".gif":".png")+"?size=64";}}}catch{}}
+  return {id,linkedAt:row.linked_at,createdAt,username,displayName,avatar};
+ }));return {status:200,accounts};
+}
 async function directPair(code,token){
   let user;
   try{
@@ -36,7 +49,7 @@ async function directPair(code,token){
   }catch(error){
     await client.query("ROLLBACK").catch(()=>{});
     const message=error instanceof Error?error.message:"";
-    const allowed=["Code expired or already used","Code expired or invalid","Discord is already connected to another account; unlink it first","Account connection could not be verified. Unlink an existing account or connect the app in Zuzify first."];
+    const allowed=["You can link a maximum of 3 Discord accounts","Code expired or already used","Code expired or invalid","Discord is already connected to another account; unlink it first","Account connection could not be verified. Unlink an existing account or connect the app in Zuzify first."];
     return allowed.includes(message)?{status:409,error:message}:{status:503,error:"The pairing database is unavailable. Try again later."};
   }finally{client.release();}
 }
@@ -54,11 +67,12 @@ async function proxyPair(code,authorization){
   }catch{return {status:503,error:"Discord bot API is unavailable."};}
 }
 export default async function handler(req,res){
-  if(req.method!=="POST")return reply(res,405,{error:"Method not allowed"});
+  if(!["GET","POST"].includes(req.method))return reply(res,405,{error:"Method not allowed"});
   const origin=req.headers.origin;
   if(origin){try{if(new URL(origin).host!==req.headers.host)return reply(res,403,{error:"Cross-site requests are not allowed"});}catch{return reply(res,403,{error:"Invalid origin"});}}
   const authorization=req.headers.authorization||"";
   if(typeof authorization!=="string"||!/^Bearer [A-Za-z0-9._-]{20,8192}$/.test(authorization))return reply(res,401,{error:"Sign in to Zuzify and try again."});
+  if(req.method==="GET"){try{const {status,...data}=await listAccounts(authorization.slice(7));return reply(res,status,data);}catch{return reply(res,503,{error:"Could not load Discord connections."});}}
   if(Number(req.headers["content-length"]||0)>1024)return reply(res,413,{error:"Pairing request is too large"});
   let body;
   try{body=typeof req.body==="string"?JSON.parse(req.body):req.body;}catch{return reply(res,400,{error:"Invalid pairing request"});}
@@ -66,7 +80,8 @@ export default async function handler(req,res){
   if(!/^(?:[A-F0-9]{16}|[a-f0-9]{64})$/.test(code))return reply(res,400,{error:"Enter the code sent privately by the Discord bot."});
   try{
     const direct=Boolean(process.env.ZUZIFY_PAIRING_BOT_DATABASE_URL&&process.env.ZUZIFY_PAIRING_ACCOUNTS_DATABASE_URL);
-    const {status,...data}=await (direct?directPair(code,authorization.slice(7)):proxyPair(code,authorization));
+    if(!direct)return reply(res,503,{error:"Direct Discord pairing databases must be configured to enforce the account limit."});
+    const {status,...data}=await directPair(code,authorization.slice(7));
     return reply(res,status,data);
   }catch{return reply(res,503,{error:"Discord pairing is temporarily unavailable."});}
 }

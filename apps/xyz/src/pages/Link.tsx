@@ -71,14 +71,14 @@ export function LinkPage() {
   return <section className="oauth-wrap link-page">
     <span className="eyebrow">ZUZIFY ID / DISCORD</span>
     <h1>Link your Discord account</h1>
-    <p>In Discord, run <code>/linkaccount</code>, then check your DMs for your private pairing code. Only approve a request you started.</p>
+    <p>In Discord, run <code>/linkaccount</code>, then check your DMs for your private pairing code. Only approve a request you started. You can link up to three Discord accounts you own.</p>
     {isPending ? <p className="account-muted">Checking your account...</p> :
       !session ? <div>
         <p className="account-muted">Sign in to the Zuzify account you want to connect before entering your code. If you do not have an account, create one first.</p>
         <Link className="portal-primary" to={"/auth/sign-in?from=" + encodeURIComponent("/link" + location.search)}>Sign in to continue</Link> <Link className="portal-quiet" to={"/auth/sign-up?from=" + encodeURIComponent("/link" + location.search)}>Create account</Link>
       </div> : complete ? <div role="status" className="link-status">
         <h2>Discord connected</h2>
-        <p>Return to Discord and use <code>/accounts</code> to confirm the connection.</p>
+        <p>View your connected accounts in account settings. You can link a maximum of three Discord accounts.</p>
         <Link className="portal-quiet" to="/account">Back to account</Link>
       </div> : <form className="oauth-form" onSubmit={link}>
         <p className="account-muted">Requested service: <strong>{serviceName}</strong>. Your code determines the actual account connection.</p>

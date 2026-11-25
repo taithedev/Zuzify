@@ -3,6 +3,15 @@ import { ArrowUpRight, Check, Copy, LogOut, RefreshCw, ShieldCheck } from "lucid
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { authClient } from "../auth/client";
 import { VerifyEmail } from "./VerifyEmail";
+import { getApiToken, parseApi } from "../auth/apiToken";
+
+type DiscordAccount = { id:string; linkedAt:string; createdAt:string|null; username:string|null; displayName:string|null; avatar:string|null };
+function DiscordConnections({uid}:{uid:string}) {
+ const [accounts,setAccounts]=useState<DiscordAccount[]>([]),[busy,setBusy]=useState(true),[error,setError]=useState("");
+ const [loaded,setLoaded]=useState(false);
+ useEffect(()=>{let active=true;setBusy(true);setLoaded(false);setAccounts([]);setError("");void (async()=>{try{const token=await getApiToken();const response=await fetch("/api/link/complete",{headers:{authorization:"Bearer "+token},cache:"no-store",credentials:"omit"});const data=await parseApi<{accounts:DiscordAccount[]}>(response);if(active){setAccounts(data.accounts);setLoaded(true);}}catch(e){if(active)setError(e instanceof Error?e.message:"Could not load Discord accounts.");}finally{if(active)setBusy(false);}})();return()=>{active=false};},[uid]);
+ return <section className="account-card connections-card" style={{marginTop:16}}><div className="card-title"><div><span className="eyebrow">03 / DISCORD</span><h2>Linked Discord accounts</h2></div><strong>{loaded?accounts.length+" / 3":"— / 3"}</strong></div><p className="account-muted">Only you can see these connections. Link up to three Discord accounts you own.</p>{busy?<p>Loading Discord accounts…</p>:error?<p role="alert" className="portal-error">{error}</p>:accounts.length? <div className="grant-list">{accounts.map(a=><div key={a.id} className="grant-item"><span className="grant-icon">{a.avatar?<img src={a.avatar} alt="" style={{width:36,height:36,borderRadius:"50%"}}/>:"D"}</span><div style={{minWidth:0,overflowWrap:"anywhere"}}><strong>{a.displayName||a.username||"Discord account"}</strong>{a.username&&<small>@{a.username}</small>}<small>Discord ID: {a.id}</small><small>Linked: {accountDate(a.linkedAt)} · Created: {accountDate(a.createdAt)}</small><small>Verified connection</small></div><button className="copy-id" title="Copy Discord ID" onClick={()=>void navigator.clipboard.writeText(a.id)}><Copy size={14}/></button></div>)}</div>:<p>No Discord accounts linked.</p>}{loaded&&accounts.length<3&&<p><Link to="/link" className="portal-primary">Link Discord account</Link></p>}{loaded&&accounts.length>=3&&<p className="account-muted">All slots are used. Run /unlinkaccount in Discord to free a slot.</p>}</section>;
+}
 
 type Grant = { id: string; name: string; scopes: string; created?: string };
 function record(value: unknown): Record<string, unknown> | null {
@@ -90,6 +99,7 @@ export function AccountPage() {
         <div className="account-footnote">Connections require each Zuzify product to integrate the official login flow. Existing app accounts are not automatically merged.</div>
       </section>
     </div>
+    <DiscordConnections key={session.user.id} uid={session.user.id}/>
     <div className="center-shortcuts"><Link className="portal-quiet" to="/social">Profile, friends & messages</Link><Link className="portal-quiet" to="/support">Support tickets</Link><Link className="portal-quiet" to="/notifications">Notifications & email preferences</Link></div>
     <div className="account-bottom"><div><span className="eyebrow">ZUZIFY ECOSYSTEM</span><h3>Explore the websites</h3></div><Link to="/" className="portal-quiet">Back to sites <ArrowUpRight size={16}/></Link></div>
   </section>;

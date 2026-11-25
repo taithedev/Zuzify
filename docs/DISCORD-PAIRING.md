@@ -11,3 +11,7 @@ Use a separate least-privilege PostgreSQL login for each database. On the bot da
 As an alternative, set BOT_LINK_API_URL to the working public HTTPS origin of the bot, with no path. The website uses that API if direct database variables are not configured.
 
 No database secrets should use the VITE_ prefix or be committed to source.
+
+## Multiple Discord accounts
+
+Apply `discord-multiple-accounts.sql` on the Zuzify Accounts database. The database enforces three active Discord identities per Zuzify user, including bot writes; existing links are not removed. The account page lists only the authenticated user's links. The website now requires direct database pairing rather than proxying to an older bot API. Optionally configure a server-only `DISCORD_BOT_TOKEN` to display Discord usernames, display names and avatars; without it the account ID and dates remain available. Never expose this token to the client.
