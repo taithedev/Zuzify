@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { authClient } from "../auth/client";
+import {getApiToken,parseApi} from "../auth/apiToken";
 
 const serviceLabels: Record<string, string> = {
   zuzify: "Zuzify Account", prezzstore: "PrezzStore",
@@ -48,9 +49,7 @@ export function LinkPage() {
     }
     try {
       // Neon Auth issues an authenticated JWT; never send the opaque session token.
-      const client = authClient as typeof authClient & { getJWTToken?: () => Promise<string | null> };
-      const token = await client.getJWTToken?.();
-      if (!token) throw new Error("Your session could not be verified. Sign out and sign in again.");
+      const token = await getApiToken();
       const response = await fetch("/api/link/complete", {
         method: "POST",
         headers: { "content-type": "application/json", authorization: "Bearer " + token },
@@ -58,8 +57,7 @@ export function LinkPage() {
         cache: "no-store",
         credentials: "omit"
       });
-      const body = await response.json().catch(() => ({})) as { error?: string; service?: string };
-      if (!response.ok) throw new Error(body.error || "Could not link Discord. Try a new code.");
+      await parseApi<{ok:boolean;service?:string}>(response);
       setCode("");
       setComplete(true);
       navigate("/link", { replace: true });

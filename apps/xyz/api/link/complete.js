@@ -1,9 +1,7 @@
 import pg from "pg";
 import { createHash } from "node:crypto";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import {verifyIdentity,logVerificationFailure} from "../_lib/identity.js";
 
-const authUrl=(process.env.NEON_AUTH_URL || process.env.VITE_NEON_AUTH_URL || "https://ep-rough-recipe-bcjp6wq7.neonauth.c-16.us-east-1.aws.neon.tech/neondb/auth").replace(/\/$/,"");
-const jwks=createRemoteJWKSet(new URL(authUrl+"/.well-known/jwks.json"));
 let botPool, accountsPool;
 function reply(res,status,value){
   res.setHeader("Cache-Control","no-store");
@@ -18,10 +16,10 @@ function pairingCode(input){
 async function directPair(code,token){
   let user;
   try{
-    const {payload}=await jwtVerify(token,jwks,{algorithms:["EdDSA"],issuer:authUrl,audience:authUrl});
+    const payload=await verifyIdentity(token);
     user=String(payload.sub||"");
     if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user))throw new Error("Invalid identity");
-  }catch{return {status:401,error:"Zuzify session could not be verified. Sign in again."};}
+  }catch(error){logVerificationFailure(error);return {status:401,error:"Zuzify session could not be verified. Sign in again."};}
   botPool ||= new pg.Pool({connectionString:process.env.ZUZIFY_PAIRING_BOT_DATABASE_URL,max:2,connectionTimeoutMillis:8000,idleTimeoutMillis:10000,statement_timeout:8000});
   accountsPool ||= new pg.Pool({connectionString:process.env.ZUZIFY_PAIRING_ACCOUNTS_DATABASE_URL,max:2,connectionTimeoutMillis:8000,idleTimeoutMillis:10000,statement_timeout:8000});
   const client=await botPool.connect();
