@@ -292,3 +292,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .center-page .portal-error { color:#ffb8b8; }
 @media(max-width:700px){.center-grid{grid-template-columns:1fr}.portal-shell{width:calc(100% - 32px)}.portal-nav{font-size:12px;gap:12px}.center-hero{padding-top:20px}}
 @media(prefers-reduced-motion:reduce){.portal-primary,.portal-quiet{transition:none}}
+
+.hub-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:24px 0}
+.hub-stat{background:#111;border:1px solid #303030;border-radius:16px;padding:20px}.hub-stat strong{display:block;font-size:34px;letter-spacing:-.05em}
+.hub-toolbar{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.hub-toolbar input{flex:1;min-width:150px;background:#151515;border:1px solid #444;color:#fff;padding:12px;border-radius:9px}
+.hub-list{display:grid;gap:8px}.hub-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #333;background:#121212;border-radius:12px;padding:15px;overflow-wrap:anywhere}.hub-row small{display:block;color:#999;margin-top:5px}
+.hub-tab[aria-pressed=true]{background:#eee;color:#111}.hub-panel{margin:22px 0}.hub-actions{display:flex;flex-wrap:wrap;gap:10px}.hub-muted{color:#999;font-size:13px}.hub-section{margin-top:44px}.hub-section h2{font-size:25px;letter-spacing:-.03em}.hub-section .sites-entry h2{font-size:19px}

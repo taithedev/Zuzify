@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { ArrowUpRight, Check, Copy, LogOut, RefreshCw, ShieldCheck } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { authClient } from "../auth/client";
+import { VerifyEmail } from "./VerifyEmail";
 
 type Grant = { id: string; name: string; scopes: string; created?: string };
 function record(value: unknown): Record<string, unknown> | null {
@@ -76,6 +77,7 @@ export function AccountPage() {
         <h2>{session.user.name}</h2><p className="account-muted">{session.user.email}</p>
         <div className="identity-row"><span>Member since</span><strong>{accountDate(session.user.createdAt)}</strong></div>
         <div className="identity-row"><span>Email status</span><strong>{session.user.emailVerified ? "Verified" : "Not verified"}</strong></div>
+        {!session.user.emailVerified && <VerifyEmail email={session.user.email} onVerified={()=>void refetch()} />}
         <div className="identity-row"><span>Zuzify user ID</span><button className="copy-id" title="Copy user ID" onClick={()=>navigator.clipboard.writeText(session.user.id)}>{session.user.id.slice(0,8)}… <Copy size={14}/></button></div>
         <form className="edit-name" onSubmit={saveName}><label htmlFor="display-name">Display name</label><div className="edit-name-row"><input id="display-name" value={newName} onChange={e=>setNewName(e.target.value)} required maxLength={70} /><button type="submit" disabled={saving || !newName.trim()}>{saving?"Saving…":"Save"}</button></div></form>
         {message && <p role="status" className="account-notice">{message}</p>}

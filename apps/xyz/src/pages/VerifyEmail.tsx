@@ -1,0 +1,8 @@
+import {useState} from "react";
+import {authClient} from "../auth/client";
+export function VerifyEmail({email,onVerified}:{email:string;onVerified:()=>void}){
+ const [code,setCode]=useState(""),[sent,setSent]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ type Result={error?:{message?:string}|null}; const client=authClient as unknown as {emailOtp?:{sendVerificationOtp:(a:{email:string;type:"email-verification"})=>Promise<Result>;verifyEmail:(a:{email:string;otp:string})=>Promise<Result>}};
+ async function run(verify:boolean){setBusy(true);setMessage("");try{if(!client.emailOtp)throw new Error("Email verification is not available in this client.");const result=verify?await client.emailOtp.verifyEmail({email,otp:code.trim()}):await client.emailOtp.sendVerificationOtp({email,type:"email-verification"});if(result.error)throw new Error(result.error.message||"Verification failed.");if(verify){setMessage("Email verified.");onVerified();}else{setSent(true);setMessage("Check your email for a verification code.");}}catch(e){setMessage(e instanceof Error?e.message:"Verification failed.");}finally{setBusy(false);}}
+ return <div className="center-form"><button type="button" className="portal-quiet" disabled={busy} onClick={()=>void run(false)}>{sent?"Resend code":"Verify email"}</button>{sent&&<><label>Verification code<input autoComplete="one-time-code" inputMode="numeric" maxLength={8} value={code} onChange={e=>setCode(e.target.value)}/></label><button className="portal-primary" disabled={busy||!code.trim()} onClick={()=>void run(true)}>Confirm code</button></>}{message&&<small role="status">{message}</small>}</div>;
+}

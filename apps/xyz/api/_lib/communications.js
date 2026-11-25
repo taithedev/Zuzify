@@ -6,7 +6,7 @@ export const fail=(status,message)=>Object.assign(new Error(message),{status});
 export function db(){if(!process.env.COMMUNICATIONS_DATABASE_URL)throw fail(503,"Communications service is not configured.");return neon(process.env.COMMUNICATIONS_DATABASE_URL);}
 export function send(res,status,data){res.setHeader("Cache-Control","no-store");return res.status(status).json(data);}
 export function handle(res,e){return send(res,e.status||500,{error:e.status?e.message:"Communications service unavailable."});}
-export function secret(req,expected){const actual=String(req.headers.authorization||"").replace(/^Bearer /,"");return typeof expected==="string"&&expected.length>=32&&actual.length===expected.length&&timingSafeEqual(Buffer.from(actual),Buffer.from(expected));}
+export function secret(req,expected){const actual=String(req.headers.authorization||"").replace(/^Bearer /,"");return typeof expected==="string"&&expected.length>=32&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&timingSafeEqual(Buffer.from(actual),Buffer.from(expected));}
 export function body(req){const b=typeof req.body==="string"?JSON.parse(req.body):req.body;if(!b||typeof b!=="object"||Array.isArray(b)||JSON.stringify(b).length>12000)throw fail(400,"Invalid request.");return b;}
 export function clean(value,max){if(typeof value!=="string"||!value.trim()||value.trim().length>max)throw fail(400,"Invalid text field.");return value.trim();}
 let jwks;
@@ -16,7 +16,7 @@ export async function user(req,sql){
  const token=String(req.headers.authorization||"").match(/^Bearer ([A-Za-z0-9._-]{20,8192})$/)?.[1];
  if(!token)throw fail(401,"Sign in first.");
  let payload;try{jwks??=createRemoteJWKSet(new URL(issuer.replace(/\/$/,"")+"/.well-known/jwks.json"));({payload}=await jwtVerify(token,jwks,{issuer,audience,requiredClaims:["sub","exp","iat"]}));}catch{throw fail(401,"Session verification failed.");}
- const rows=await sql`SELECT id::text AS id,email,"emailVerified" AS verified FROM neon_auth."user" WHERE id::text=${payload.sub}`;
+ const rows=await sql`SELECT id::text AS id,email,"emailVerified" AS verified FROM neon_auth."user" WHERE id::text=${payload.sub} AND COALESCE(banned,false)=false`;
  if(!rows.length)throw fail(401,"Account not found.");
  return rows[0];
 }

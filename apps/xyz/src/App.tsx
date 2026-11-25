@@ -6,6 +6,7 @@ import { AccountPage } from "./pages/Account";
 import { OAuthLogin, OAuthConsent } from "./pages/OAuth";
 import { LinkPage } from "./pages/Link";
 import { Center } from "./pages/Center";
+import { Owner, OwnerLink } from "./pages/Owner";
 
 function Header() {
   const { data: session, isPending } = authClient.useSession();
@@ -15,6 +16,7 @@ function Header() {
       <Link to="/">Explore</Link>
       <Link to="/support">Support</Link>
       <Link to="/notifications">Notifications</Link>
+      {session && <OwnerLink userId={session.user.id}/> }
       <Link to={session ? "/account" : "/auth/sign-in"}>{isPending ? "Account" : session ? "My account" : "Sign in"}</Link>
     </nav>
   </header>;
@@ -32,6 +34,7 @@ export function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/support" element={<Center mode="support" />} />
           <Route path="/notifications" element={<Center mode="notifications" />} />
+          <Route path="/owner" element={<Owner/>} />
           <Route path="/link" element={<LinkPage />} />
           <Route path="/oauth/login" element={<OAuthLogin />} />
           <Route path="/oauth/consent" element={<OAuthConsent />} />

@@ -1,56 +1,12 @@
+import {useEffect,useState} from "react";
 import "./websites.css";
-import { Link } from "react-router-dom";
-import { ArrowUpRight, Bell, LifeBuoy } from "lucide-react";
-
-type Website = {
-  name: string;
-  domain: string;
-  description: string;
-};
-
-const websites: Website[] = [
-  {
-    name: "Zuzify",
-    domain: "zuzify.xyz",
-    description: "The home of Zuzify. Discover our apps, products, and projects.",
-  },
-  {
-    name: "Zuzify LOL",
-    domain: "zuzify.lol",
-    description: "A space for experiments, creative projects, and new ideas.",
-  },
-  {
-    name: "ZuzuOS",
-    domain: "zuzuos.lol",
-    description: "The website for the ZuzuOS operating system project.",
-  },
-  {
-    name: "Zuzu",
-    domain: "zuzu.lol",
-    description: "The Zuzu brand and its growing collection of projects.",
-  },
-];
-
-export function Websites() {
-  return (
-    <section className="sites-page" aria-label="Zuzify websites">
-      <div className="center-hero"><span className="eyebrow">ZUZIFY / CONNECTED ECOSYSTEM</span><h1>Everything Zuzify.<br/>One place.</h1><p>Discover projects, manage your identity and stay connected to the services you use.</p><div className="center-shortcuts"><Link className="portal-primary" to="/account">Your Zuzify ID <ArrowUpRight size={16}/></Link><Link className="portal-quiet" to="/support">Get support</Link></div></div><div className="center-tiles"><Link to="/support"><LifeBuoy size={22}/><strong>Support center</strong><span>Create and track tickets.</span></Link><Link to="/notifications"><Bell size={22}/><strong>Notifications</strong><span>App updates, news and email preferences.</span></Link></div><span className="eyebrow center-section-label">EXPLORE / WEBSITES</span><div className="sites-list">
-        {websites.map((site) => (
-          <article className="sites-entry" key={site.domain}>
-            <h2>{site.name}</h2>
-            <p className="sites-entry-byline">By Zuzify</p>
-            <p className="sites-entry-description">{site.description}</p>
-            <a
-              className="sites-entry-link"
-              href={`https://${site.domain}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {site.domain}
-            </a>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
+import {Link} from "react-router-dom";
+import {ArrowUpRight,Bell,LifeBuoy} from "lucide-react";
+type Site={domain:string;title:string;category:"owned"|"hosted"};
+export function Websites(){const [sites,setSites]=useState<Site[]|null>(null),[error,setError]=useState(""),[query,setQuery]=useState("");
+useEffect(()=>{let active=true;fetch("/api/directory",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error("Directory unavailable.");return r.json()}).then(d=>{if(active)setSites(d.sites)}).catch(()=>{if(active)setError("The directory is temporarily unavailable.")});return()=>{active=false}},[]);
+const filtered=(sites||[]).filter(s=>(s.title+" "+s.domain).toLowerCase().includes(query.toLowerCase()));
+return <section className="sites-page"><div className="center-hero"><span className="eyebrow">ZUZIFY / GLOBAL HUB</span><h1>Everything Zuzify.<br/>One place.</h1><p>Explore owned domains and hosted projects. Manage your Zuzify ID, support and notifications.</p><div className="center-shortcuts"><Link className="portal-primary" to="/account">Your Zuzify ID <ArrowUpRight size={16}/></Link><Link className="portal-quiet" to="/support">Get support</Link></div></div>
+<div className="center-tiles"><Link to="/support"><LifeBuoy size={22}/><strong>Support center</strong><span>Open and track support tickets.</span></Link><Link to="/notifications"><Bell size={22}/><strong>Notifications</strong><span>Updates, rank changes and email preferences.</span></Link></div>
+<div className="hub-toolbar"><input aria-label="Search websites" placeholder="Search websites…" value={query} onChange={e=>setQuery(e.target.value)}/></div>
+{error?<p role="alert">{error}</p>:!sites?<p role="status">Loading directory…</p>:["owned","hosted"].map(category=><section className="hub-section" key={category}><span className="eyebrow">{category==="owned"?"01 / OFFICIAL DOMAINS":"02 / HOSTED PROJECTS"}</span><h2>{category==="owned"?"Main websites":"Vercel websites"}</h2><div className="sites-list">{filtered.filter(s=>s.category===category).map(s=><article className="sites-entry" key={s.domain}><h2>{s.title}</h2><p className="sites-entry-byline">{category==="owned"?"Owned domain":"Vercel hosted"}</p><a className="sites-entry-link" href={"https://"+s.domain} target="_blank" rel="noopener noreferrer">{s.domain} ↗</a></article>)}</div>{!filtered.some(s=>s.category===category)&&<p className="hub-muted">No matching websites.</p>}</section>)}</section>}
