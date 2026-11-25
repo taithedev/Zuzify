@@ -35,7 +35,7 @@ export function Center({mode}:{mode:"support"|"notifications"}) {
   async function create(e:FormEvent<HTMLFormElement>){e.preventDefault();if(await update({action:"ticket",app,subject,body},"Ticket created.")){setSubject("");setBody("");}}
   return <section className="center-page"><span className="eyebrow">ZUZIFY ID / SERVICE CENTER</span><h1>{mode==="support"?"Support center":"Notifications"}</h1><p>{mode==="support"?"Create a ticket and track replies in one place.":"Stay up to date with your connected apps and choose which emails you receive."}</p>
     {isPending?<p role="status">Checking your account…</p>:!session?<Link className="portal-primary" to={"/auth/sign-in?from="+encodeURIComponent("/"+mode)}>Sign in to continue</Link>:<>
-    {error&&<p role="alert" className="portal-error">{error}</p>}{message&&<p role="status" className="center-status">{message}</p>}
+    {error&&<div role="alert" className="center-panel"><p className="portal-error">{error}</p><button className="portal-quiet" onClick={()=>{setError("");void request().then(setData).catch(e=>setError(e.message));}}>Try again</button></div>}{message&&<p role="status" className="center-status">{message}</p>}
     {!data&&!error&&<p role="status">Loading…</p>}
     {data&&!data.verified&&<p role="status">Verify your account email to receive emails and open tickets.</p>}
     {data&&<div className="center-grid">{mode==="support"?<>

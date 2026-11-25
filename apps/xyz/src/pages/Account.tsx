@@ -74,7 +74,7 @@ export function AccountPage() {
       <section className="account-card identity-card">
         <span className="eyebrow">01 / YOUR IDENTITY</span>
         <div className="identity-avatar">{session.user.image ? <img src={session.user.image} alt="" /> : session.user.name.slice(0,1).toUpperCase()}</div>
-        <h2>{session.user.name}</h2><p className="account-muted">{session.user.email}</p>
+        <h2>{session.user.name}</h2><p><Link className="portal-primary" to="/social">Edit profile &amp; banner</Link></p><p className="account-muted">{session.user.email}</p>
         <div className="identity-row"><span>Member since</span><strong>{accountDate(session.user.createdAt)}</strong></div>
         <div className="identity-row"><span>Email status</span><strong>{session.user.emailVerified ? "Verified" : "Not verified"}</strong></div>
         {!session.user.emailVerified && <VerifyEmail email={session.user.email} onVerified={()=>void refetch()} />}
