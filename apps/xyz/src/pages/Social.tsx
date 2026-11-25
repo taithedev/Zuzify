@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState,type FormEvent,type ChangeEvent} from "react";
 import {Link} from "react-router-dom";
 import {authClient} from "../auth/client";
+import {getApiToken} from "../auth/apiToken";
 import {UserRound,Users,MessageCircle,Copy,RefreshCw,Send,Shield,Flag,ImagePlus} from "lucide-react";
 import "./social.css";
 const avatars=["mono","orbit","pixel","star","wave","grid"],banners=["night","silver","violet","ocean","aurora","ember"];
@@ -8,7 +9,7 @@ type Profile={friend_code:string;avatar:string;banner:string;avatar_image:string
 type Friend={id:string;name:string;state:"pending"|"accepted"|"blocked";outgoing:boolean;blocked_by_me:boolean;avatar:string|null;banner:string|null;avatar_image:string|null;banner_image:string|null};
 type Data={profile:Profile;friends:Friend[]};
 type Message={id:string;sender:string;body:string;created_at:string};
-async function request<T>(query="",action?:Record<string,unknown>):Promise<T>{const c=authClient as typeof authClient&{getJWTToken?:()=>Promise<string|null>};const token=await c.getJWTToken?.();if(!token)throw new Error("Session unavailable. Sign in again.");const r=await fetch("/api/social"+query,{method:action?"POST":"GET",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:action?JSON.stringify(action):undefined,credentials:"omit",cache:"no-store"});const d=await r.json().catch(()=>({error:"Friends service unavailable."}));if(!r.ok)throw new Error(d.error||"Friends service unavailable.");return d as T}
+async function request<T>(query="",action?:Record<string,unknown>):Promise<T>{const token=await getApiToken();const r=await fetch("/api/social"+query,{method:action?"POST":"GET",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:action?JSON.stringify(action):undefined,credentials:"omit",cache:"no-store"});const d=await r.json().catch(()=>({error:"Friends service unavailable."}));if(!r.ok)throw new Error(d.error||"Friends service unavailable.");return d as T}
 function Avatar({name,style,image}:{name:string;style?:string|null;image?:string|null}){return <span className={"social-avatar avatar-"+(style||"mono")}>{image?<img src={image} alt=""/>:<span>{style==="star"?"✦":style==="orbit"?"◉":style==="pixel"?"▦":style==="wave"?"≈":style==="grid"?"⊞":name.slice(0,1).toUpperCase()}</span>}</span>}
 function Banner({style,image}:{style?:string|null;image?:string|null}){return <div className={"social-banner banner-"+(style||"night")}>{image&&<img src={image} alt=""/>}</div>}
 export function Social(){const {data:session,isPending}=authClient.useSession();const uid=session?.user.id;const [data,setData]=useState<Data|null>(null),[tab,setTab]=useState("Profile"),[error,setError]=useState(""),[status,setStatus]=useState(""),[busy,setBusy]=useState(false),[code,setCode]=useState(""),[selected,setSelected]=useState(""),[messages,setMessages]=useState<Message[]>([]),[draft,setDraft]=useState(""),[report,setReport]=useState(""),[reason,setReason]=useState(""),[chatError,setChatError]=useState("");

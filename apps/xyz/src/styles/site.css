@@ -298,3 +298,20 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .hub-toolbar{display:flex;flex-wrap:wrap;gap:12px;margin:20px 0}.hub-toolbar input{flex:1;min-width:150px;background:#151515;border:1px solid #444;color:#fff;padding:12px;border-radius:9px}
 .hub-list{display:grid;gap:8px}.hub-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #333;background:#121212;border-radius:12px;padding:15px;overflow-wrap:anywhere}.hub-row small{display:block;color:#999;margin-top:5px}
 .hub-tab[aria-pressed=true]{background:#eee;color:#111}.hub-panel{margin:22px 0}.hub-actions{display:flex;flex-wrap:wrap;gap:10px}.hub-muted{color:#999;font-size:13px}.hub-section{margin-top:44px}.hub-section h2{font-size:25px;letter-spacing:-.03em}.hub-section .sites-entry h2{font-size:19px}
+
+/* Winter / solid OLED surfaces. No transparency or backdrop filters on UI panels. */
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#080808}
+body{background:#080808}.portal{isolation:isolate;position:relative}.portal-shell{position:relative;z-index:1;width:min(calc(100% - 48px),1160px)}
+.winter-snow{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.winter-snow i{position:absolute;top:-12px;background:#f8f8f8;border-radius:50%;animation-name:winter-fall;animation-timing-function:linear;animation-iteration-count:infinite}
+@keyframes winter-fall{from{transform:translate3d(0,-20px,0)}to{transform:translate3d(var(--snow-drift),calc(100vh + 32px),0)}}
+.winter-toggle{position:fixed;right:18px;bottom:18px;z-index:3;width:42px;height:42px;border:1px solid #343434;border-radius:12px;color:#ddd;background:#141414;display:grid;place-items:center}.winter-toggle[aria-pressed=false]{color:#777}
+.portal-header{padding:18px 0;min-height:82px;gap:24px}.portal-nav{gap:6px}.portal-nav a{padding:9px 12px;border-radius:8px;color:#aaa;font-weight:500}.portal-nav a.active,.portal-nav a:hover{background:#1d1d1d;color:#fff;text-decoration:none}
+.portal-brand{font-size:23px;letter-spacing:-.055em;font-weight:750}.portal-footer{padding:25px 0 35px}
+.center-page,.account-page{padding:48px 0 75px}.center-page h1,.account-heading h1{font-weight:720;letter-spacing:-.055em}
+.center-panel,.account-card,.auth-panel,.center-tiles a,.hub-stat,.hub-row{background:#101010;border:1px solid #2c2c2c;border-radius:16px;box-shadow:none}
+.account-card,.auth-panel{padding:25px}.identity-avatar{border-radius:50%;overflow:hidden}.auth-wrap{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}.auth-side h1{font-size:clamp(38px,5.3vw,65px);letter-spacing:-.06em}.auth-panel input,.edit-name input{border-radius:9px;max-width:none}
+.center-form input,.center-form textarea,.center-form select,.auth-panel input{background:#171717;border-color:#363636}
+.portal-quiet{background:#151515;border-color:#383838}.portal-primary{background:#f1f1f1;border-color:#f1f1f1;color:#101010}.portal-primary:hover{background:#d2d2d2}.portal-error{color:#ffb8b8}.center-panel .portal-error{margin-top:0}
+@media(max-width:760px){.portal-shell{width:calc(100% - 32px)}.auth-wrap{grid-template-columns:1fr;gap:12px}.portal-header{gap:10px}.portal-nav{gap:2px}.portal-nav a{padding:7px 8px}.winter-toggle{right:10px;bottom:10px}}
+@media(prefers-reduced-motion:reduce){.winter-snow{display:none}.winter-toggle{display:none}*{scroll-behavior:auto!important}}

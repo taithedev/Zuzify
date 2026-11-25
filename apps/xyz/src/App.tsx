@@ -1,4 +1,5 @@
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { NavLink, Link, Navigate, Route, Routes } from "react-router-dom";
+import { Snowfall } from "./components/Snowfall";
 import { authClient } from "./auth/client";
 import { Websites } from "./pages/Websites";
 import { AuthPage } from "./pages/Auth";
@@ -14,10 +15,10 @@ function Header() {
   return <header className="portal-header">
     <Link to="/" className="portal-brand" aria-label="Zuzify home">Zuzify.xyz</Link>
     <nav className="portal-nav" aria-label="Main navigation">
-      <Link to="/">Explore</Link>
-      <Link to="/social">Friends</Link>
-      <Link to="/support">Support</Link>
-      <Link to="/notifications">Notifications</Link>
+      <NavLink end to="/">Explore</NavLink>
+      <NavLink to="/social">Friends</NavLink>
+      <NavLink to="/support">Support</NavLink>
+      <NavLink to="/notifications">Notifications</NavLink>
       {session && <OwnerLink userId={session.user.id}/> }
       <Link to={session ? "/account" : "/auth/sign-in"}>{isPending ? "Account" : session ? "My account" : "Sign in"}</Link>
     </nav>
@@ -26,6 +27,7 @@ function Header() {
 
 export function App() {
   return <div className="portal">
+    <Snowfall/>
     <div className="portal-shell">
       <Header />
       <main id="main-content">

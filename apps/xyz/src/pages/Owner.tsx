@@ -1,12 +1,13 @@
 import {useEffect,useState,type FormEvent} from "react";
 import {Link} from "react-router-dom";
 import {authClient} from "../auth/client";
+import {getApiToken} from "../auth/apiToken";
 import {SocialReports} from "./SocialReports";
 type Site={domain:string;title:string;category:string;visible:boolean};
 type Account={id:string;name:string;verified:boolean;created_at:string;connections:{name:string;scopes:string[]|string}[]};
 type Ticket={id:string;user_id:string;app:string;subject:string;body:string;status:string;reply:string|null};
 type Data={sites:Site[];accounts:Account[];tickets:Ticket[];counts:{accounts:number;open_tickets:number;queued:number;tickets:number}};
-async function api<T>(query="",action?:Record<string,unknown>):Promise<T>{const c=authClient as typeof authClient & {getJWTToken?:()=>Promise<string|null>};const token=await c.getJWTToken?.();if(!token)throw new Error("Session unavailable. Sign in again.");const r=await fetch("/api/owner"+query,{method:action?"POST":"GET",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:action?JSON.stringify(action):undefined,cache:"no-store",credentials:"omit"});const d=await r.json().catch(()=>({error:"Owner service unavailable."}));if(!r.ok)throw new Error(d.error||"Owner service unavailable.");return d as T;}
+async function api<T>(query="",action?:Record<string,unknown>):Promise<T>{const token=await getApiToken();const r=await fetch("/api/owner"+query,{method:action?"POST":"GET",headers:{authorization:"Bearer "+token,"content-type":"application/json"},body:action?JSON.stringify(action):undefined,cache:"no-store",credentials:"omit"});const d=await r.json().catch(()=>({error:"Owner service unavailable."}));if(!r.ok)throw new Error(d.error||"Owner service unavailable.");return d as T;}
 export function OwnerLink({userId}:{userId:string}){const [allowed,setAllowed]=useState(false);useEffect(()=>{let active=true;setAllowed(false);void api<{owner:boolean}>("?access=1").then(d=>{if(active)setAllowed(d.owner)}).catch(()=>{});return()=>{active=false}},[userId]);return allowed?<Link to="/owner">Owner</Link>:null;}
 export function Owner(){const {data:session,isPending}=authClient.useSession();const [data,setData]=useState<Data|null>(null),[error,setError]=useState(""),[busy,setBusy]=useState(false),[tab,setTab]=useState("Sites"),[page,setPage]=useState(0),[search,setSearch]=useState(""),[selected,setSelected]=useState(""),[reply,setReply]=useState(""),[close,setClose]=useState(false),[recipient,setRecipient]=useState(""),[title,setTitle]=useState(""),[message,setMessage]=useState(""),[status,setStatus]=useState("");
 const uid=session?.user.id;

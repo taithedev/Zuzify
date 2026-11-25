@@ -1,19 +1,16 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "../auth/client";
+import {getApiToken,parseApi} from "../auth/apiToken";
 
 type Ticket = { id:string; app:string; subject:string; status:string; created_at:string; reply:string|null };
 type Notice = { id:string; title:string; body:string; kind:string; created_at:string; read_at:string|null };
 type CenterData = { tickets:Ticket[]; notices:Notice[]; news:boolean; transactional:boolean; verified:boolean };
 const apps = ["Zuzify","ZuzuCord","ZuzuLoader","Zora","Kova","ZuzuOS","Other"];
 async function request(action?:Record<string,unknown>):Promise<CenterData> {
-  const client=authClient as typeof authClient & {getJWTToken?:()=>Promise<string|null>};
-  const token=await client.getJWTToken?.();
-  if(!token) throw new Error("Your session could not be verified. Sign in again.");
+  const token=await getApiToken();
   const response=await fetch("/api/center",{method:action?"POST":"GET",headers:{"content-type":"application/json",authorization:"Bearer "+token},body:action?JSON.stringify(action):undefined,cache:"no-store",credentials:"omit"});
-  const result=await response.json().catch(()=>({error:"Service unavailable."}));
-  if(!response.ok) throw new Error(result.error||"Service unavailable.");
-  return result as CenterData;
+  return parseApi<CenterData>(response);
 }
 export function Center({mode}:{mode:"support"|"notifications"}) {
   const {data:session,isPending}=authClient.useSession();
@@ -37,7 +34,7 @@ export function Center({mode}:{mode:"support"|"notifications"}) {
     {isPending?<p role="status">Checking your account…</p>:!session?<Link className="portal-primary" to={"/auth/sign-in?from="+encodeURIComponent("/"+mode)}>Sign in to continue</Link>:<>
     {error&&<div role="alert" className="center-panel"><p className="portal-error">{error}</p><button className="portal-quiet" onClick={()=>{setError("");void request().then(setData).catch(e=>setError(e.message));}}>Try again</button></div>}{message&&<p role="status" className="center-status">{message}</p>}
     {!data&&!error&&<p role="status">Loading…</p>}
-    {data&&!data.verified&&<p role="status">Verify your account email to receive emails and open tickets.</p>}
+    {data&&!data.verified&&<p role="status">Verify your account email to receive emails and open tickets. <Link to="/account">Verify in My account</Link></p>}
     {data&&<div className="center-grid">{mode==="support"?<>
       <div className="center-panel"><h2>New ticket</h2><form className="center-form" onSubmit={create}><label>Application<select value={app} onChange={e=>setApp(e.target.value)}>{apps.map(a=><option key={a}>{a}</option>)}</select></label><label>Subject<input required maxLength={120} value={subject} onChange={e=>setSubject(e.target.value)}/></label><label>Describe the issue<textarea required maxLength={3000} value={body} onChange={e=>setBody(e.target.value)}/></label><small>Do not include passwords, tokens or private personal information.</small><button className="portal-primary" disabled={busy||!data.verified||!subject.trim()||!body.trim()}>Create ticket</button></form></div>
       <div className="center-panel"><h2>Your tickets</h2>{data.tickets.length?data.tickets.map(t=><article className="center-item" key={t.id}><strong>{t.subject}</strong><p>{t.app} · {t.status}</p><small>#{t.id.slice(0,8)} · {new Date(t.created_at).toLocaleDateString()}</small>{t.reply&&<p>Support: {t.reply}</p>}</article>):<p>No tickets yet.</p>}</div>
