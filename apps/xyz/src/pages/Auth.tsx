@@ -8,6 +8,7 @@ function safeNext(value: string | null): string {
   const url = new URL(value, "https://zuzify.xyz");
   if (url.origin !== "https://zuzify.xyz") return "/account";
   if (url.pathname === "/oauth/login" && url.search.startsWith("?")) return url.pathname + url.search;
+  if (["/owner","/support","/notifications","/social"].includes(url.pathname)) return url.pathname;
   if (url.pathname === "/link") return url.pathname + url.search;
   return "/account";
 }
@@ -47,7 +48,7 @@ export function AuthPage() {
         if (result.error) throw new Error(result.error.message);
       }
       navigate(next, { replace: true });
-    } catch (problem) { setError(readError(problem)); }
+    } catch (problem) { const message=readError(problem); setError(/invalid origin/i.test(message) ? "This sign-in origin was rejected. Open https://www.zuzify.xyz/auth/sign-in and try again." : message); }
     finally { setBusy(false); }
   }
 
@@ -61,7 +62,7 @@ export function AuthPage() {
         {signup && <label>Display name<input required autoComplete="name" maxLength={70} value={name} onChange={e => setName(e.target.value)} placeholder="How you appear across Zuzify" /></label>}
         <label>Email<input required type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" /></label>
         <label>Password<input required type="password" minLength={8} autoComplete={signup ? "new-password" : "current-password"} value={password} onChange={e => setPassword(e.target.value)} placeholder={signup ? "Create a secure password" : "Your password"} /></label>
-        {error && <p role="alert" className="portal-error">{error}</p>}
+        {error && <p role="alert" className="portal-error">{error} {/origin/i.test(error)&&<a href="https://www.zuzify.xyz/auth/sign-in">Open official sign-in</a>}</p>}
         <button type="submit" className="portal-primary" disabled={busy || isPending}>{busy ? "Working..." : signup ? "Create account" : "Sign in"}</button>
       </form>
       <div className="auth-switch">{signup ? "Already have an account?" : "New to Zuzify?"} <Link to={"/auth/" + (signup ? "sign-in" : "sign-up") + preserve}>{signup ? "Sign in" : "Create one"}</Link></div>
