@@ -12,18 +12,26 @@ async function overview(sql,id){
  return {profile,friends};
 }
 async function image(raw,kind){
- if(typeof raw!=="string"||raw.length>1500000||!/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(raw))throw fail(400,"Choose PNG, JPEG, WebP or GIF. GIF uploads must be under 1 MB.");
+ if(typeof raw!=="string")throw fail(400,"Choose PNG, JPEG, WebP or GIF.");
+ const isGif=raw.startsWith("data:image/gif;");
+ if(raw.length>(isGif?4000022:1500000)||!/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(raw))throw fail(400,"Choose PNG, JPEG, WebP or GIF. GIF uploads support up to 3 MB.");
  try{
   const buf=Buffer.from(raw.split(",")[1],"base64");
-  const isGif=raw.startsWith("data:image/gif;");
+  if(isGif&&buf.length>3000000)throw new Error("size");
   const info=await sharp(buf,{limitInputPixels:12000000,failOn:"error"}).metadata();
   if(!["jpeg","png","webp","gif"].includes(info.format)||isGif!==(info.format==="gif"))throw new Error("format");
   const frames=info.pages||1, height=info.pageHeight||info.height;
   if(isGif&&(frames>60||!height||!info.width||info.width*height*frames>18000000))throw new Error("animation limit");
-  const input=sharp(buf,{limitInputPixels:18000000,animated:isGif,failOn:"error"});
   const width=kind==="avatar"?320:900, targetHeight=kind==="avatar"?320:300;
-  const out=isGif?await input.resize(kind==="avatar"?192:480,kind==="avatar"?192:160,{fit:"cover"}).webp({quality:65,effort:3,loop:0}).toBuffer():await input.rotate().resize(width,targetHeight,{fit:"cover"}).webp({quality:76}).toBuffer();
-  if(out.length>220000)throw new Error("size");
+  const input=()=>sharp(buf,{limitInputPixels:18000000,animated:isGif,failOn:"error"});
+  let out;
+  if(isGif){
+   for(const [scale,quality] of [[1,65],[1,48],[0.75,45],[0.5,35]]){
+    out=await input().resize(Math.round((kind==="avatar"?192:480)*scale),Math.round((kind==="avatar"?192:160)*scale),{fit:"cover"}).webp({quality,effort:3,loop:0}).toBuffer();
+    if(out.length<=220000)break;
+   }
+  }else out=await input().rotate().resize(width,targetHeight,{fit:"cover"}).webp({quality:76}).toBuffer();
+  if(!out||out.length>220000)throw new Error("size");
   return "data:image/webp;base64,"+out.toString("base64");
  }catch{throw fail(400,"Image could not be processed. Try a smaller image or a shorter GIF (up to 60 frames).");}
 }
